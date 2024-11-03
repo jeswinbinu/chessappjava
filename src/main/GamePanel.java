@@ -20,9 +20,14 @@ public class GamePanel extends JPanel implements Runnable {
     public static ArrayList<Piece> simPieces = new ArrayList<>();
 
     Piece activeP;
+    public static Piece castlingP;
     public static final int WHITE = 0;
     public static final int BLACK = 1;
     int currentColor = 0;
+
+    boolean canMove;
+    boolean validSquare;
+
 
     public GamePanel() {
         board = new Board();
@@ -124,19 +129,100 @@ public class GamePanel extends JPanel implements Runnable {
         }
         if (mouse.pressed == false) {
             if (activeP != null) {
-                activeP.updatePosition();
+                if (validSquare) {
+
+                    //move CONFIRM
+                    
+                    //UPDATE list if a piece has been captured and removed
+                    copyPieces(simPieces, pieces);
+                    activeP.updatePosition();
+                    
+                    if (castlingP != null) {
+                        castlingP.updatePosition();
+                    }
+
+                    changePlayer();
+                }
+                else{
+                    //if move is not valid, RESET everything
+                    copyPieces(pieces, simPieces);
+
+                    activeP.resetPosition();
+                    activeP = null;
+                }
                 activeP = null;
             }
         }
     }
 
     public void simulate() {
+
+        canMove = false;
+        validSquare = false;
+
+        //reset piece list every loop, used for restoring the board
+        copyPieces(pieces, simPieces);
+        
+        //reset castling piece's position
+        if (castlingP != null) {
+            castlingP.col = castlingP.preCol;
+            castlingP.x = castlingP.getX(castlingP.col);
+            castlingP = null;
+        }
+
         // update the position if the piece is being held;
         activeP.x = mouse.x - Board.HALF_SQUARE_SIZE;
         activeP.y = mouse.y - Board.HALF_SQUARE_SIZE;
         activeP.col = activeP.getCol(activeP.x);
         activeP.row = activeP.getRow(activeP.y);
+
+        //check if piece is moved to a valid square
+        if (activeP.canMove(activeP.col, activeP.row)) {
+
+            canMove = true;
+
+            if (activeP.hittingP != null) {
+                simPieces.remove(activeP.hittingP.getIndex());
+            }
+
+            checkCastling();
+            validSquare = true;
+
+        }
     }
+
+    private void checkCastling() {
+        if (castlingP != null) {
+            if (castlingP.col == 0) {
+                castlingP.col += 3;
+            }
+            else if (castlingP.col == 7) {
+                castlingP.col -= 2;
+            }
+            castlingP.x = castlingP.getX(castlingP.col);
+        }
+    }
+    private void changePlayer() {
+        if (currentColor == WHITE) {
+            currentColor = BLACK;
+            //reset black's two stepped
+            for (Piece piece : GamePanel.simPieces) {
+                if (piece.color == BLACK) {
+                    piece.twoStepped = false;
+                }
+            }
+        }
+        else {
+            currentColor = WHITE;
+            //reset black's two stepped
+            for (Piece piece : GamePanel.simPieces) {
+                if (piece.color == WHITE) {
+                    piece.twoStepped = false;
+                }
+            }
+        }
+        activeP = null;
+    } 
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -151,12 +237,25 @@ public class GamePanel extends JPanel implements Runnable {
         }
 
         if (activeP != null) {
-            g2.setColor(Color.white);
-            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
-            g2.fillRect(activeP.col * Board.SQUARE_SIZE, activeP.row * Board.SQUARE_SIZE, Board.SQUARE_SIZE,
+            if (canMove) {
+                g2.setColor(Color.white);
+                g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
+                g2.fillRect(activeP.col * Board.SQUARE_SIZE, activeP.row * Board.SQUARE_SIZE, Board.SQUARE_SIZE,
                     Board.SQUARE_SIZE);
-            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
+                g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
+            }
             activeP.draw(g2);
+        }
+
+        //STATUS MESSAGES
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        g2.setFont(new Font("Book Antiqua", Font.PLAIN, 30));
+        g2.setColor(Color.white);
+        if (currentColor == WHITE) {
+            g2.drawString("White's turn", 611, 412);
+        }
+        else {
+            g2.drawString("Black's turn", 611, 187);
         }
     }
 }
