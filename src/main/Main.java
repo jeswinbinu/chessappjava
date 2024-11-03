@@ -4,7 +4,7 @@ import javax.swing.*;
 
 public class Main {
     public static void main(String[] args) {
-        JFrame window = new JFrame("chess");
+        JFrame window = new JFrame("Chess.in");
 
         // logic to put the panel in the window
         GamePanel gamepanel = new GamePanel();

@@ -3,9 +3,9 @@ package main;
 import java.awt.*;
 
 public class Board {
-    int MAX_ROW = 8;
-    int MAX_COL = 8;
-    int SQUARE_SIZE = 80;
+    public static final int MAX_ROW = 8;
+    public static final int MAX_COL = 8;
+    public static final int SQUARE_SIZE = 75;
 
     public void draw(Graphics2D g2) {
 
