@@ -6,6 +6,7 @@ public class Board {
     public static final int MAX_ROW = 8;
     public static final int MAX_COL = 8;
     public static final int SQUARE_SIZE = 75;
+    public static final int HALF_SQUARE_SIZE = 75 / 2;
 
     public void draw(Graphics2D g2) {
 
